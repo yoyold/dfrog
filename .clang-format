@@ -11,4 +11,11 @@ NamespaceIndentation: None
 SortIncludes: CaseSensitive
 IncludeBlocks: Preserve
 SpacesBeforeTrailingComments: 2
+BreakBeforeBraces: Attach
+AllowShortFunctionsOnASingleLine: None
+AllowShortBlocksOnASingleLine: Never
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortLambdasOnASingleLine: None
 ...
