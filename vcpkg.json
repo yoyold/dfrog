@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "dfrog",
+  "description": "Deterministic Fault-Resilient Operations Guardian",
+  "homepage": "https://github.com/your-org/dfrog",
+  "license": "Apache-2.0",
+  "supports": "linux",
+  "dependencies": [
+    { "name": "cli11" }
+  ],
+  "features": {
+    "tests": {
+      "description": "Build the test suite (GoogleTest).",
+      "dependencies": [
+        { "name": "gtest" }
+      ]
+    }
+  },
+  "default-features": ["tests"]
+}

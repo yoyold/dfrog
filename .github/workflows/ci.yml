@@ -1,0 +1,173 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+
+jobs:
+  vcpkg-pin:
+    name: read vcpkg pin
+    runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.read.outputs.commit }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: read
+        run: echo "commit=$(tr -d '[:space:]' < .vcpkg-commit)" >> "$GITHUB_OUTPUT"
+
+  lint:
+    name: clang-format + clang-tidy
+    runs-on: ubuntu-24.04
+    needs: vcpkg-pin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install lint deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config \
+            curl zip unzip tar git ca-certificates \
+            clang-18 clang-format-18 clang-tidy-18
+
+      - name: clang-format dry-run
+        run: |
+          mapfile -t files < <(git ls-files '*.cpp' '*.hpp' '*.cc' '*.h')
+          if [ "${#files[@]}" -gt 0 ]; then
+            clang-format-18 --dry-run -Werror "${files[@]}"
+          fi
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: ${{ needs.vcpkg-pin.outputs.commit }}
+
+      - name: Configure (dev) for compile_commands.json
+        env:
+          CC: clang-18
+          CXX: clang++-18
+        run: cmake --preset dev
+
+      - name: clang-tidy on src/ + tests/
+        run: |
+          mapfile -t files < <(git ls-files 'src/*.cpp' 'tests/*.cpp')
+          if [ "${#files[@]}" -gt 0 ]; then
+            clang-tidy-18 -p build/dev --quiet "${files[@]}"
+          fi
+
+  build-and-test:
+    name: ${{ matrix.preset }} (${{ matrix.compiler }})
+    runs-on: ubuntu-24.04
+    needs: vcpkg-pin
+    strategy:
+      fail-fast: false
+      matrix:
+        preset: [dev, release]
+        compiler: [gcc, clang]
+        include:
+          - compiler: gcc
+            cc: gcc-13
+            cxx: g++-13
+          - compiler: clang
+            cc: clang-18
+            cxx: clang++-18
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config \
+            curl zip unzip tar git ca-certificates \
+            ${{ matrix.cc }} ${{ matrix.cxx }}
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: ${{ needs.vcpkg-pin.outputs.commit }}
+
+      - name: Configure
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build --preset ${{ matrix.preset }} --parallel
+
+      - name: Test
+        run: ctest --preset ${{ matrix.preset }} --output-on-failure
+
+      - name: Smoke-run binary (--version)
+        run: ./build/${{ matrix.preset }}/bin/dfrogd --version
+
+      - name: Smoke-run binary (--validate-only)
+        run: ./build/${{ matrix.preset }}/bin/dfrogd --validate-only --config /dev/null
+
+  tsan:
+    name: tsan (clang)
+    runs-on: ubuntu-24.04
+    needs: vcpkg-pin
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake ninja-build pkg-config \
+            curl zip unzip tar git ca-certificates \
+            clang-18
+
+      - name: Setup vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgGitCommitId: ${{ needs.vcpkg-pin.outputs.commit }}
+
+      - name: Configure (TSan)
+        env:
+          CC: clang-18
+          CXX: clang++-18
+        run: cmake --preset tsan
+
+      - name: Build
+        run: cmake --build --preset tsan --parallel
+
+      - name: Test
+        run: ctest --preset tsan --output-on-failure
+
+  docker:
+    name: container image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: dfrog:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Smoke-run image (--version)
+        run: docker run --rm dfrog:ci --version
+
+      - name: Smoke-run image (--validate-only)
+        run: docker run --rm dfrog:ci --validate-only --config /dev/null

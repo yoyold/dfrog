@@ -1,0 +1,48 @@
+build/
+build-*/
+out/
+.cache/
+.vscode/
+.idea/
+.vs/
+*.user
+*.swp
+*.swo
+.DS_Store
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+
+# vcpkg
+vcpkg_installed/
+.vcpkg-root
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov
+coverage/
+*.profraw
+*.profdata
+
+# Binaries / artifacts
+*.o
+*.obj
+*.so
+*.dll
+*.dylib
+*.a
+*.lib
+*.exe
+
+# Logs / runtime state
+*.log
+*.pid
+
+# Local-only working notes
+PLAN.md
