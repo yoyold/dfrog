@@ -15,14 +15,20 @@ env:
 
 jobs:
   vcpkg-pin:
-    name: read vcpkg pin
+    name: read vcpkg baseline
     runs-on: ubuntu-24.04
     outputs:
       commit: ${{ steps.read.outputs.commit }}
     steps:
       - uses: actions/checkout@v4
       - id: read
-        run: echo "commit=$(tr -d '[:space:]' < .vcpkg-commit)" >> "$GITHUB_OUTPUT"
+        run: |
+          commit=$(jq -r '."builtin-baseline"' vcpkg.json)
+          if [ -z "$commit" ] || [ "$commit" = "null" ]; then
+            echo "::error::vcpkg.json is missing builtin-baseline"
+            exit 1
+          fi
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
 
   lint:
     name: clang-format + clang-tidy
@@ -56,6 +62,16 @@ jobs:
           CC: clang-18
           CXX: clang++-18
         run: cmake --preset dev
+
+      - name: Dump vcpkg log on failure
+        if: failure()
+        run: |
+          log=build/dev/vcpkg-manifest-install.log
+          if [ -f "$log" ]; then
+            echo "::group::vcpkg-manifest-install.log"
+            cat "$log"
+            echo "::endgroup::"
+          fi
 
       - name: clang-tidy on src/ + tests/
         run: |
@@ -103,6 +119,16 @@ jobs:
           CXX: ${{ matrix.cxx }}
         run: cmake --preset ${{ matrix.preset }}
 
+      - name: Dump vcpkg log on failure
+        if: failure()
+        run: |
+          log=build/${{ matrix.preset }}/vcpkg-manifest-install.log
+          if [ -f "$log" ]; then
+            echo "::group::vcpkg-manifest-install.log"
+            cat "$log"
+            echo "::endgroup::"
+          fi
+
       - name: Build
         run: cmake --build --preset ${{ matrix.preset }} --parallel
 
@@ -140,6 +166,16 @@ jobs:
           CC: clang-18
           CXX: clang++-18
         run: cmake --preset tsan
+
+      - name: Dump vcpkg log on failure
+        if: failure()
+        run: |
+          log=build/tsan/vcpkg-manifest-install.log
+          if [ -f "$log" ]; then
+            echo "::group::vcpkg-manifest-install.log"
+            cat "$log"
+            echo "::endgroup::"
+          fi
 
       - name: Build
         run: cmake --build --preset tsan --parallel

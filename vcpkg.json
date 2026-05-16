@@ -5,6 +5,7 @@
   "homepage": "https://github.com/your-org/dfrog",
   "license": "Apache-2.0",
   "supports": "linux",
+  "builtin-baseline": "a42af01b72c28a8e1d7b48107b33e4f286a55ef6",
   "dependencies": [
     { "name": "cli11" }
   ],

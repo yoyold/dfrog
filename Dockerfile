@@ -9,8 +9,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VCPKG_ROOT=/opt/vcpkg \
     VCPKG_DEFAULT_BINARY_CACHE=/var/cache/vcpkg
 
-# apt lists/cache are kept in BuildKit cache mounts (tmpfs-style, not persisted
-# into the image layer), so an apt-get clean step would be a no-op.
+# apt lists/cache live in BuildKit cache mounts (tmpfs-style, not persisted
+# into the image layer), so an `apt-get clean` step would be a no-op.
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
@@ -19,16 +19,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         cmake \
         curl \
         git \
+        jq \
         ninja-build \
         pkg-config \
         tar \
         unzip \
         zip
 
-# vcpkg pin is the single source of truth in .vcpkg-commit at repo root —
-# the same file is consumed by CI to keep container and CI builds in lockstep.
-COPY .vcpkg-commit /tmp/.vcpkg-commit
-RUN VCPKG_COMMIT="$(tr -d '[:space:]' < /tmp/.vcpkg-commit)" \
+# vcpkg pin = the "builtin-baseline" in vcpkg.json (single source of truth).
+COPY vcpkg.json /tmp/vcpkg.json
+RUN VCPKG_COMMIT="$(jq -r '."builtin-baseline"' /tmp/vcpkg.json)" \
+ && test -n "$VCPKG_COMMIT" && test "$VCPKG_COMMIT" != "null" \
  && git clone https://github.com/microsoft/vcpkg "${VCPKG_ROOT}" \
  && git -C "${VCPKG_ROOT}" checkout "${VCPKG_COMMIT}" \
  && "${VCPKG_ROOT}/bootstrap-vcpkg.sh" -disableMetrics
