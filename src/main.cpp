@@ -15,13 +15,15 @@ int main(int argc, char** argv) {
         ->envname("DFROG_CONFIG");
 
     bool validate_only{false};
-    app.add_flag("--validate-only", validate_only,
-                 "Parse and validate the config, then exit (no daemon start).");
+    app.add_flag("--validate-only", validate_only, "Validate config and exit.");
 
     CLI11_PARSE(app, argc, argv);
 
-    std::cout << dfrog::version_banner() << '\n'
-              << "config: " << config_path
-              << (validate_only ? " (validate-only)" : "") << '\n';
+    std::cout << dfrog::version_banner() << '\n';
+    std::cout << "config: " << config_path;
+    if (validate_only) {
+        std::cout << " (validate-only)";
+    }
+    std::cout << '\n';
     return EXIT_SUCCESS;
 }
