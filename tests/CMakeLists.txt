@@ -4,6 +4,8 @@ include(GoogleTest)
 add_executable(dfrog_unit_tests
     smoke_test.cpp
     version_test.cpp
+    lifecycle_test.cpp
+    logging_test.cpp
 )
 target_link_libraries(dfrog_unit_tests
     PRIVATE

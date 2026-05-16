@@ -3,6 +3,8 @@ find_package(CLI11 CONFIG REQUIRED)
 # ---- Core library (so tests can link against the same code as the daemon) ----
 add_library(dfrog_core STATIC
     core/version_info.cpp
+    core/lifecycle.cpp
+    core/logging.cpp
 )
 target_include_directories(dfrog_core
     PUBLIC
