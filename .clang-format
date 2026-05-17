@@ -13,7 +13,7 @@ SortIncludes: CaseSensitive
 IncludeBlocks: Preserve
 SpacesBeforeTrailingComments: 2
 BreakBeforeBraces: Attach
-AlignAfterOpenBracket: DontAlign
+AlignAfterOpenBracket: AlwaysBreak
 BinPackArguments: false
 BinPackParameters: false
 AllowShortFunctionsOnASingleLine: None
@@ -22,6 +22,4 @@ AllowShortIfStatementsOnASingleLine: Never
 AllowShortLoopsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false
 AllowShortLambdasOnASingleLine: None
-AllowAllArgumentsOnNextLine: false
-AllowAllParametersOfDeclarationOnNextLine: false
 ...

@@ -82,25 +82,30 @@ std::string iso_timestamp_utc_now() {
 
     const auto now = system_clock::now();
     const auto secs = floor<seconds>(now);
-    const auto ms = duration_cast<milliseconds>(now - secs).count();
+    // ms is always in [0, 999]; narrowing here lets the compiler prove the
+    // %03d directive can never overflow the buffer.
+    const auto ms = static_cast<int>(duration_cast<milliseconds>(now - secs).count());
 
     const std::time_t t = system_clock::to_time_t(secs);
     std::tm tm_buf{};
     gmtime_r(&t, &tm_buf);
 
-    char buf[40];
+    // 128 is comfortably above the compiler's pessimistic worst-case for the
+    // format string (every %d directive assumed to be a full INT_MIN sized
+    // value), which keeps -Wformat-truncation silent under -Werror.
+    char buf[128];
     // NOLINTNEXTLINE(cert-err33-c)
     std::snprintf(
         buf,
         sizeof(buf),
-        "%04d-%02d-%02dT%02d:%02d:%02d.%03lldZ",
+        "%04d-%02d-%02dT%02d:%02d:%02d.%03dZ",
         tm_buf.tm_year + 1900,
         tm_buf.tm_mon + 1,
         tm_buf.tm_mday,
         tm_buf.tm_hour,
         tm_buf.tm_min,
         tm_buf.tm_sec,
-        static_cast<long long>(ms));
+        ms);
     return std::string{buf};
 }
 
