@@ -1,7 +1,19 @@
 #include "dfrog/daemon.hpp"
 
+// Asio's executor equality operators trip GCC 13's -Wnull-dereference under
+// -O3 once they are inlined. The headers are included as -isystem but that
+// classification is lost by the time the analyzer runs after inlining, so
+// scope-suppress the diagnostic just across the asio includes.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
 #include <asio/io_context.hpp>
 #include <asio/signal_set.hpp>
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+
 #include <csignal>
 #include <string_view>
 #include <utility>
