@@ -19,7 +19,7 @@ enum class State {
 
 class Lifecycle {
 public:
-    Lifecycle() noexcept;
+    Lifecycle() noexcept = default;
 
     Lifecycle(const Lifecycle&) = delete;
     Lifecycle& operator=(const Lifecycle&) = delete;
@@ -32,7 +32,7 @@ public:
     bool try_transition(State next) noexcept;
 
 private:
-    std::atomic<State> state_;
+    std::atomic<State> state_{State::Booting};
 };
 
 }  // namespace dfrog

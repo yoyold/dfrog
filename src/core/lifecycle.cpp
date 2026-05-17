@@ -37,8 +37,6 @@ bool is_valid_transition(State from, State to) noexcept {
     return false;
 }
 
-Lifecycle::Lifecycle() noexcept : state_(State::Booting) {}
-
 State Lifecycle::get() const noexcept {
     return state_.load(std::memory_order_acquire);
 }
@@ -46,8 +44,12 @@ State Lifecycle::get() const noexcept {
 bool Lifecycle::try_transition(State next) noexcept {
     State current = state_.load(std::memory_order_acquire);
     while (is_valid_transition(current, next)) {
-        if (state_.compare_exchange_weak(current, next, std::memory_order_acq_rel,
-                                         std::memory_order_acquire)) {
+        const bool swapped = state_.compare_exchange_weak(
+            current,
+            next,
+            std::memory_order_acq_rel,
+            std::memory_order_acquire);
+        if (swapped) {
             return true;
         }
     }

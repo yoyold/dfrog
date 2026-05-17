@@ -30,15 +30,19 @@ void error(std::string_view event, std::initializer_list<Attr> attrs = {});
 
 namespace detail {
 
-// Exposed for unit tests of the JSON serialization. The first parameter
-// allows tests to inject a deterministic timestamp; production callers
-// use the overload below.
-[[nodiscard]] std::string make_log_line(std::string_view iso_timestamp, Level lvl,
-                                        std::string_view event,
-                                        std::initializer_list<Attr> attrs);
+// Exposed for unit tests of the JSON serialization. The first overload
+// accepts an explicit timestamp so tests can pin determinism; production
+// callers use the second overload which reads the wall clock.
+[[nodiscard]] std::string make_log_line(
+    std::string_view iso_timestamp,
+    Level lvl,
+    std::string_view event,
+    std::initializer_list<Attr> attrs);
 
-[[nodiscard]] std::string make_log_line(Level lvl, std::string_view event,
-                                        std::initializer_list<Attr> attrs);
+[[nodiscard]] std::string make_log_line(
+    Level lvl,
+    std::string_view event,
+    std::initializer_list<Attr> attrs);
 
 [[nodiscard]] std::string iso_timestamp_utc_now();
 

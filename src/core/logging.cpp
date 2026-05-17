@@ -90,15 +90,25 @@ std::string iso_timestamp_utc_now() {
 
     char buf[40];
     // NOLINTNEXTLINE(cert-err33-c)
-    std::snprintf(buf, sizeof(buf), "%04d-%02d-%02dT%02d:%02d:%02d.%03lldZ",
-                  tm_buf.tm_year + 1900, tm_buf.tm_mon + 1, tm_buf.tm_mday,
-                  tm_buf.tm_hour, tm_buf.tm_min, tm_buf.tm_sec,
-                  static_cast<long long>(ms));
+    std::snprintf(
+        buf,
+        sizeof(buf),
+        "%04d-%02d-%02dT%02d:%02d:%02d.%03lldZ",
+        tm_buf.tm_year + 1900,
+        tm_buf.tm_mon + 1,
+        tm_buf.tm_mday,
+        tm_buf.tm_hour,
+        tm_buf.tm_min,
+        tm_buf.tm_sec,
+        static_cast<long long>(ms));
     return std::string{buf};
 }
 
-std::string make_log_line(std::string_view iso_timestamp, Level lvl, std::string_view event,
-                          std::initializer_list<Attr> attrs) {
+std::string make_log_line(
+    std::string_view iso_timestamp,
+    Level lvl,
+    std::string_view event,
+    std::initializer_list<Attr> attrs) {
     std::string out;
     out.reserve(128 + (32 * attrs.size()));
     out += "{\"ts\":\"";
@@ -128,8 +138,10 @@ std::string make_log_line(std::string_view iso_timestamp, Level lvl, std::string
     return out;
 }
 
-std::string make_log_line(Level lvl, std::string_view event,
-                          std::initializer_list<Attr> attrs) {
+std::string make_log_line(
+    Level lvl,
+    std::string_view event,
+    std::initializer_list<Attr> attrs) {
     return make_log_line(iso_timestamp_utc_now(), lvl, event, attrs);
 }
 
