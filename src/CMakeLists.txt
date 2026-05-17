@@ -1,10 +1,12 @@
 find_package(CLI11 CONFIG REQUIRED)
+find_package(asio CONFIG REQUIRED)
 
 # ---- Core library (so tests can link against the same code as the daemon) ----
 add_library(dfrog_core STATIC
     core/version_info.cpp
     core/lifecycle.cpp
     core/logging.cpp
+    core/daemon.cpp
 )
 target_include_directories(dfrog_core
     PUBLIC
@@ -13,6 +15,7 @@ target_include_directories(dfrog_core
     PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+target_link_libraries(dfrog_core PUBLIC asio::asio)
 dfrog_set_warnings(dfrog_core)
 dfrog_apply_sanitizers(dfrog_core)
 

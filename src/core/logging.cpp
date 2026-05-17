@@ -167,6 +167,10 @@ void log(Level lvl, std::string_view event, std::initializer_list<Attr> attrs) {
     std::fwrite(line.data(), 1, line.size(), stdout);
     // NOLINTNEXTLINE(cert-err33-c)
     std::fputc('\n', stdout);
+    // Flush per line so a SIGKILL or hard crash never loses the most recent
+    // record. Cheap on stdout when attached to a terminal or container log.
+    // NOLINTNEXTLINE(cert-err33-c)
+    std::fflush(stdout);
 }
 
 void debug(std::string_view event, std::initializer_list<Attr> attrs) {

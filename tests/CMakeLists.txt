@@ -6,6 +6,7 @@ add_executable(dfrog_unit_tests
     version_test.cpp
     lifecycle_test.cpp
     logging_test.cpp
+    daemon_test.cpp
 )
 target_link_libraries(dfrog_unit_tests
     PRIVATE
