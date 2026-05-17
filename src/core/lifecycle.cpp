@@ -45,10 +45,7 @@ bool Lifecycle::try_transition(State next) noexcept {
     State current = state_.load(std::memory_order_acquire);
     while (is_valid_transition(current, next)) {
         const bool swapped = state_.compare_exchange_weak(
-            current,
-            next,
-            std::memory_order_acq_rel,
-            std::memory_order_acquire);
+            current, next, std::memory_order_acq_rel, std::memory_order_acquire);
         if (swapped) {
             return true;
         }

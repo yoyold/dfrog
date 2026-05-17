@@ -8,14 +8,9 @@
 namespace dfrog::log {
 
 TEST(MakeLogLine, MinimalNoAttrs) {
-    const std::string line = detail::make_log_line(
-        "2026-05-16T18:30:00.123Z",
-        Level::Info,
-        "daemon.start",
-        {});
-    EXPECT_EQ(
-        line,
-        R"({"ts":"2026-05-16T18:30:00.123Z","lvl":"info","event":"daemon.start"})");
+    const std::string line =
+        detail::make_log_line("2026-05-16T18:30:00.123Z", Level::Info, "daemon.start", {});
+    EXPECT_EQ(line, R"({"ts":"2026-05-16T18:30:00.123Z","lvl":"info","event":"daemon.start"})");
 }
 
 TEST(MakeLogLine, IncludesAttrsWhenPresent) {
@@ -44,10 +39,7 @@ TEST(MakeLogLine, MultipleAttrsCommaSeparated) {
 
 TEST(MakeLogLine, EscapesQuotesAndBackslashes) {
     const std::string line = detail::make_log_line(
-        "2026-05-16T18:30:00.123Z",
-        Level::Info,
-        R"(a"b\c)",
-        {{"k", R"("v")"}});
+        "2026-05-16T18:30:00.123Z", Level::Info, R"(a"b\c)", {{"k", R"("v")"}});
     EXPECT_NE(line.find(R"("event":"a\"b\\c")"), std::string::npos) << "actual: " << line;
     EXPECT_NE(line.find(R"("k":"\"v\"")"), std::string::npos) << "actual: " << line;
 }
@@ -55,11 +47,8 @@ TEST(MakeLogLine, EscapesQuotesAndBackslashes) {
 TEST(MakeLogLine, EscapesControlCharacters) {
     const std::string event = std::string{"a\nb\tc"};
     const std::string val = std::string{"x\rz"};
-    const std::string line = detail::make_log_line(
-        "2026-05-16T18:30:00.123Z",
-        Level::Info,
-        event,
-        {{"k", val}});
+    const std::string line =
+        detail::make_log_line("2026-05-16T18:30:00.123Z", Level::Info, event, {{"k", val}});
     EXPECT_NE(line.find(R"("event":"a\nb\tc")"), std::string::npos) << "actual: " << line;
     EXPECT_NE(line.find(R"("k":"x\rz")"), std::string::npos) << "actual: " << line;
 }
@@ -69,11 +58,8 @@ TEST(MakeLogLine, EscapesLowControlAsUnicodeEscape) {
     event.push_back('a');
     event.push_back('\x01');
     event.push_back('b');
-    const std::string line = detail::make_log_line(
-        "2026-05-16T18:30:00.123Z",
-        Level::Info,
-        event,
-        {});
+    const std::string line =
+        detail::make_log_line("2026-05-16T18:30:00.123Z", Level::Info, event, {});
 
     std::string expected;
     expected.append("\"event\":\"a");

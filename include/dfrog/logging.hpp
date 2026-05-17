@@ -40,9 +40,7 @@ namespace detail {
     std::initializer_list<Attr> attrs);
 
 [[nodiscard]] std::string make_log_line(
-    Level lvl,
-    std::string_view event,
-    std::initializer_list<Attr> attrs);
+    Level lvl, std::string_view event, std::initializer_list<Attr> attrs);
 
 [[nodiscard]] std::string iso_timestamp_utc_now();
 

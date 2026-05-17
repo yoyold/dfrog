@@ -143,10 +143,7 @@ std::string make_log_line(
     return out;
 }
 
-std::string make_log_line(
-    Level lvl,
-    std::string_view event,
-    std::initializer_list<Attr> attrs) {
+std::string make_log_line(Level lvl, std::string_view event, std::initializer_list<Attr> attrs) {
     return make_log_line(iso_timestamp_utc_now(), lvl, event, attrs);
 }
 
